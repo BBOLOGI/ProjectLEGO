@@ -11,11 +11,11 @@ Project LEGO는 철골설계 업무의 계산, 자동화, 문서화를 위한 �
 ## 저장소 구조
 
 - `.github/workflows`: CI 워크플로
-- `docs/tasks`: 작업지시서
-- `docs/specs`: 기능 명세
-- `docs/decisions`: 설계 결정
-- `docs/tests`: 시험 문서
-- `docs/releases`: 릴리스 문서
+- `docs/TASK`: 작업지시서
+- `docs/SPEC`: 기능 명세
+- `docs/DECISION`: 설계 결정
+- `docs/TEST`: 시험 문서
+- `docs/RELEASE`: 릴리스 문서
 - `src/ProjectLEGO.Core`: 핵심 라이브러리
 - `tests/ProjectLEGO.Core.Tests`: 자동 시험
 - `assets`: 프로젝트 자산 안내
@@ -36,8 +36,17 @@ dotnet test ProjectLEGO.sln --configuration Release --no-build
 
 ## 문서 관리
 
-업무 지시는 `docs/tasks`, 명세는 `docs/specs`, 결정 기록은 `docs/decisions`,
-시험 자료는 `docs/tests`, 릴리스 기록은 `docs/releases`에서 관리합니다.
+Project LEGO의 운영 문서는 아래 위치에서 관리합니다.
+
+## Project Documents
+
+- Constitution: `docs/CONSTITUTION/PROJECT_LEGO_헌법.md`
+- Standards: `docs/STANDARDS/`
+- Tasks: `docs/TASK/`
+- Specifications: `docs/SPEC/`
+- Decisions: `docs/DECISION/`
+- Tests: `docs/TEST/`
+- Releases: `docs/RELEASE/`
 
 ## 보안
 
