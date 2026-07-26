@@ -1,0 +1,20 @@
+{
+  "TemplateId": "retaining-wall",
+  "Name": "옹벽",
+  "Category": "토공 구조물",
+  "Description": "기본 설계 조건으로 구분하는 옹벽 예시입니다.",
+  "TemplateType": "Conditional",
+  "SchemaVersion": "1.0",
+  "Fields": [
+    { "FieldId": "wall-height", "InternalName": "wallHeight", "DisplayName": "옹벽 높이", "DataType": "Number", "Unit": "m", "Required": true, "Searchable": true, "SortOrder": 0, "Options": [] },
+    {
+      "FieldId": "wall-type", "InternalName": "wallType", "DisplayName": "옹벽 형식", "DataType": "Select", "Unit": null, "Required": true, "Searchable": true, "SortOrder": 1,
+      "Options": [
+        { "Value": "gravity", "DisplayName": "중력식", "SortOrder": 0 },
+        { "Value": "cantilever", "DisplayName": "캔틸레버식", "SortOrder": 1 }
+      ]
+    },
+    { "FieldId": "has-backfill", "InternalName": "hasBackfill", "DisplayName": "배면성토", "DataType": "Boolean", "Unit": null, "Required": true, "Searchable": true, "SortOrder": 2, "Options": [] },
+    { "FieldId": "seismic-design", "InternalName": "seismicDesign", "DisplayName": "내진 고려", "DataType": "Boolean", "Unit": null, "Required": true, "Searchable": true, "SortOrder": 3, "Options": [] }
+  ]
+}

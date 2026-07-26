@@ -1,0 +1,27 @@
+{
+  "TemplateId": "catch-basin",
+  "Name": "집수정",
+  "Category": "배수 구조물",
+  "Description": "기본 치수와 재질, 형태로 구분하는 집수정 예시입니다.",
+  "TemplateType": "Standard",
+  "SchemaVersion": "1.0",
+  "Fields": [
+    { "FieldId": "width", "InternalName": "width", "DisplayName": "가로", "DataType": "Number", "Unit": "mm", "Required": true, "Searchable": true, "SortOrder": 0, "Options": [] },
+    { "FieldId": "length", "InternalName": "length", "DisplayName": "세로", "DataType": "Number", "Unit": "mm", "Required": true, "Searchable": true, "SortOrder": 1, "Options": [] },
+    { "FieldId": "height", "InternalName": "height", "DisplayName": "높이", "DataType": "Number", "Unit": "mm", "Required": true, "Searchable": true, "SortOrder": 2, "Options": [] },
+    {
+      "FieldId": "material", "InternalName": "material", "DisplayName": "재질", "DataType": "Select", "Unit": null, "Required": true, "Searchable": true, "SortOrder": 3,
+      "Options": [
+        { "Value": "concrete", "DisplayName": "콘크리트", "SortOrder": 0 },
+        { "Value": "precast-concrete", "DisplayName": "프리캐스트 콘크리트", "SortOrder": 1 }
+      ]
+    },
+    {
+      "FieldId": "shape", "InternalName": "shape", "DisplayName": "형태", "DataType": "Select", "Unit": null, "Required": true, "Searchable": true, "SortOrder": 4,
+      "Options": [
+        { "Value": "rectangular", "DisplayName": "사각형", "SortOrder": 0 },
+        { "Value": "circular", "DisplayName": "원형", "SortOrder": 1 }
+      ]
+    }
+  ]
+}

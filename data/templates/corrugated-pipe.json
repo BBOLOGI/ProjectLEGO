@@ -1,0 +1,9 @@
+{
+  "TemplateId": "corrugated-pipe",
+  "Name": "파형강관",
+  "Category": "배수 구조물",
+  "Description": "필드가 없는 단일 파형강관 LEGO 예시입니다.",
+  "TemplateType": "Single",
+  "SchemaVersion": "1.0",
+  "Fields": []
+}
