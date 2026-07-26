@@ -17,8 +17,10 @@ Project LEGO는 철골설계 업무의 계산, 자동화, 문서화를 위한 �
 - `docs/TEST`: 시험 문서
 - `docs/RELEASE`: 릴리스 문서
 - `src/ProjectLEGO.Core`: 핵심 라이브러리
+- `src/ProjectLEGO.Desktop`: LEGO 검색 WinForms 앱
 - `tests/ProjectLEGO.Core.Tests`: 자동 시험
 - `data/templates`: LEGO Template JSON
+- `data/legos`: 등록 LEGO Record JSON
 - `assets`: 프로젝트 자산 안내
 - `tools`: 개발 지원 도구 안내
 
@@ -53,6 +55,16 @@ var template = manager.GetTemplate("catch-basin");
 
 지원 형식은 `Single`, `Standard`, `Conditional`이며, 필드 형식은 `Number`,
 `Text`, `Boolean`, `Select`입니다.
+
+## LEGO 검색 Desktop
+
+```powershell
+dotnet run --project src/ProjectLEGO.Desktop/ProjectLEGO.Desktop.csproj --configuration Release
+```
+
+앱은 `data/templates`와 `data/legos`를 로드하여 키워드·Template·Category·동적
+상세 필터 검색을 제공합니다. 결과를 선택하면 폴더 열기와 삽입 요청을 사용할 수
+있습니다. 삽입 요청은 이벤트만 발생시키며 실제 CAD 삽입은 포함하지 않습니다.
 
 ## 문서 관리
 

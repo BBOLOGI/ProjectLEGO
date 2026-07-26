@@ -10,3 +10,6 @@
 - GitHub Actions 자동 Restore, Release Build, Test 워크플로
 - JSON 기반 LEGO Template 도메인 모델, 검증, 로드, 저장 및 조회 엔진
 - 파형강관, 집수정, 옹벽 샘플 Template와 자동 시험
+- JSON 기반 LEGO Record 저장소와 검증·검색 엔진
+- Template 기반 동적 필터를 제공하는 WinForms 검색 UI
+- 샘플 LEGO Record 8개와 삽입 요청 이벤트

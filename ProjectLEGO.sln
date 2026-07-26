@@ -11,6 +11,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{993CCEAB
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectLEGO.Core.Tests", "tests\ProjectLEGO.Core.Tests\ProjectLEGO.Core.Tests.csproj", "{26A07293-137E-4EF5-9FFE-87F7334A9EB4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectLEGO.Desktop", "src\ProjectLEGO.Desktop\ProjectLEGO.Desktop.csproj", "{79C90020-FD63-449A-B080-1114C06A52E2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -28,9 +30,14 @@ Global
 		{26A07293-137E-4EF5-9FFE-87F7334A9EB4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{26A07293-137E-4EF5-9FFE-87F7334A9EB4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{26A07293-137E-4EF5-9FFE-87F7334A9EB4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{79C90020-FD63-449A-B080-1114C06A52E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{79C90020-FD63-449A-B080-1114C06A52E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{79C90020-FD63-449A-B080-1114C06A52E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{79C90020-FD63-449A-B080-1114C06A52E2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{CB42BBB6-036D-4130-BE36-F1DDE4614F19} = {077C8DD3-A2DE-449E-9857-559A17BD3AFE}
 		{26A07293-137E-4EF5-9FFE-87F7334A9EB4} = {993CCEAB-FBD3-4657-97ED-9778BB073858}
+		{79C90020-FD63-449A-B080-1114C06A52E2} = {077C8DD3-A2DE-449E-9857-559A17BD3AFE}
 	EndGlobalSection
 EndGlobal
