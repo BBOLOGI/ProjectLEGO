@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using ProjectLEGO.Core.Legos;
 using ProjectLEGO.Core.Legos.Insert;
 using ProjectLEGO.Core.Legos.Search;
@@ -10,9 +9,11 @@ namespace ProjectLEGO.Desktop;
 public partial class MainForm : Form
 {
     private readonly string _repositoryRoot;
-    private IReadOnlyList<LegoTemplate> _templates = [];
-    private LegoSearchService? _searchService;
-    private LegoSearchResult? _selected;
+    private IHierarchicalLegoSearchService? _searchService;
+    private string? _selectedTemplateId;
+    private IReadOnlyList<string> _selectedSpecLabels = [];
+    private LegoRecord? _finalRecord;
+    private bool _updatingSpecs;
 
     public MainForm(string repositoryRoot)
     {
@@ -21,14 +22,15 @@ public partial class MainForm : Form
         Load += OnLoad;
         searchButton.Click += (_, _) => RunSearch();
         searchBox.KeyDown += (_, eventArgs) => { if (eventArgs.KeyCode == Keys.Enter) { RunSearch(); eventArgs.SuppressKeyPress = true; } };
-        resetButton.Click += (_, _) => ResetSearch();
-        templateCombo.SelectedIndexChanged += (_, _) => { filterPanel.SetTemplate(SelectedTemplate()); RunSearch(); };
-        categoryCombo.SelectedIndexChanged += (_, _) => RunSearch();
-        sortCombo.SelectedIndexChanged += (_, _) => RunSearch();
-        resultList.SelectedIndexChanged += (_, _) => UpdateSelection();
-        resultList.DoubleClick += (_, _) => RaiseInsertRequest();
+        resultList.SelectedIndexChanged += (_, _) => SelectSearchResult();
+        for (var index = 0; index < specCombos.Length; index++)
+        {
+            var level = index;
+            specCombos[index].SelectedIndexChanged += (_, _) => OnSpecificationChanged(level);
+        }
+        openButton.Click += (_, _) => OpenSelected();
         insertButton.Click += (_, _) => RaiseInsertRequest();
-        openFolderButton.Click += (_, _) => OpenAssetFolder();
+        closeButton.Click += (_, _) => Close();
     }
 
     public event EventHandler<LegoInsertRequestedEventArgs>? LegoInsertRequested;
@@ -36,91 +38,109 @@ public partial class MainForm : Form
     private void OnLoad(object? sender, EventArgs eventArgs)
     {
         var templateResult = new TemplateLoader().LoadAll(Path.Combine(_repositoryRoot, "data", "templates"));
-        _templates = templateResult.Templates;
-        var recordResult = new JsonLegoRepository(Path.Combine(_repositoryRoot, "data", "legos"), _templates).LoadAll();
-        _searchService = new(recordResult.Records, _templates);
-
-        templateCombo.Items.Add(new TemplateChoice(null, "전체"));
-        foreach (var template in _templates.OrderBy(template => template.Name)) templateCombo.Items.Add(new TemplateChoice(template, template.Name));
-        templateCombo.DisplayMember = nameof(TemplateChoice.Name);
-        templateCombo.SelectedIndex = 0;
-        categoryCombo.Items.Add("전체");
-        foreach (var category in recordResult.Records.Select(record => record.Category).Distinct().OrderBy(value => value)) categoryCombo.Items.Add(category);
-        categoryCombo.SelectedIndex = 0;
-        sortCombo.Items.AddRange(["관련도순", "이름 오름차순", "이름 내림차순", "최근 수정순"]);
-        sortCombo.SelectedIndex = 0;
+        ILegoRepository repository = new JsonLegoRepository(Path.Combine(_repositoryRoot, "data", "legos"), templateResult.Templates);
+        var recordResult = repository.LoadAll();
+        _searchService = new HierarchicalLegoSearchService(repository, templateResult.Templates);
         statusLabel.Text = $"Template 오류 {templateResult.Errors.Count}건 · LEGO 오류 {recordResult.Errors.Count}건";
         RunSearch();
     }
 
     private void RunSearch()
     {
-        if (_searchService is null || templateCombo.SelectedIndex < 0 || categoryCombo.SelectedIndex < 0 || sortCombo.SelectedIndex < 0) return;
-        var request = new LegoSearchRequest
-        {
-            Keyword = searchBox.Text,
-            TemplateId = SelectedTemplate()?.TemplateId,
-            Category = categoryCombo.SelectedIndex == 0 ? null : categoryCombo.SelectedItem?.ToString(),
-            Filters = filterPanel.GetFilters(),
-            Sort = (LegoSortOption)sortCombo.SelectedIndex
-        };
-        var results = _searchService.Search(request);
+        if (_searchService is null) return;
+        var results = _searchService.Search(searchBox.Text);
         resultList.BeginUpdate();
         resultList.Items.Clear();
         foreach (var result in results)
         {
             var item = new ListViewItem(result.Record.Name) { Tag = result };
-            item.SubItems.Add(result.Template.Name); item.SubItems.Add(result.Record.Category); item.SubItems.Add(result.SpecificationSummary); item.SubItems.Add(string.Join(", ", result.Record.Tags));
+            for (var index = 0; index < 4; index++) item.SubItems.Add(index < result.Specifications.Count ? result.Specifications[index] : string.Empty);
             resultList.Items.Add(item);
         }
         resultList.EndUpdate();
-        countLabel.Text = results.Count == 0 ? "조건에 맞는 LEGO가 없습니다. 검색어나 상세 필터를 변경해 보세요." : $"검색 결과 {results.Count}개";
-        ClearSelection();
+        resultCountLabel.Text = results.Count == 0 ? "검색 결과가 없습니다." : $"검색 결과 {results.Count}개";
+        ResetSpecifications();
     }
 
-    private void ResetSearch()
+    private void SelectSearchResult()
     {
-        searchBox.Clear(); templateCombo.SelectedIndex = 0; categoryCombo.SelectedIndex = 0; sortCombo.SelectedIndex = 0; filterPanel.SetTemplate(null); RunSearch();
+        if (_searchService is null || resultList.SelectedItems.Count != 1) return;
+        var result = (HierarchicalSearchResult)resultList.SelectedItems[0].Tag!;
+        _selectedTemplateId = result.Template.TemplateId;
+        _selectedSpecLabels = result.Template.Fields.Where(field => field.Searchable).OrderBy(field => field.SortOrder).Take(4).Select(field => field.DisplayName).ToArray();
+        _updatingSpecs = true;
+        ResetSpecificationControls();
+        SetOptions(0, _searchService.GetSpec1(_selectedTemplateId), SpecLabel(0));
+        _updatingSpecs = false;
+        UpdateFinalRecord();
     }
 
-    private LegoTemplate? SelectedTemplate() => (templateCombo.SelectedItem as TemplateChoice)?.Template;
-
-    private void UpdateSelection()
+    private void OnSpecificationChanged(int level)
     {
-        _selected = resultList.SelectedItems.Count == 1 ? resultList.SelectedItems[0].Tag as LegoSearchResult : null;
-        selectionLabel.Text = _selected is null ? "선택: 없음" : $"선택: {_selected.Record.Name} / {_selected.Record.LegoId}";
-        insertButton.Enabled = _selected is not null;
-        openFolderButton.Enabled = _selected is not null;
+        if (_updatingSpecs || _searchService is null || _selectedTemplateId is null) return;
+        _updatingSpecs = true;
+        for (var index = level + 1; index < 4; index++) ClearSpec(index);
+        var values = SelectedValues();
+        if (level == 0 && values[0] is not null) SetOptions(1, _searchService.GetSpec2(_selectedTemplateId, values[0]!), SpecLabel(1));
+        if (level == 1 && values[0] is not null && values[1] is not null) SetOptions(2, _searchService.GetSpec3(_selectedTemplateId, values[0]!, values[1]!), SpecLabel(2));
+        if (level == 2 && values[0] is not null && values[1] is not null && values[2] is not null) SetOptions(3, _searchService.GetSpec4(_selectedTemplateId, values[0]!, values[1]!, values[2]!), SpecLabel(3));
+        _updatingSpecs = false;
+        UpdateFinalRecord();
     }
 
-    private void ClearSelection()
+    private void UpdateFinalRecord()
     {
-        _selected = null; selectionLabel.Text = "선택: 없음"; insertButton.Enabled = false; openFolderButton.Enabled = false;
+        if (_searchService is null || _selectedTemplateId is null) { SetFinal(null); return; }
+        var values = SelectedValues();
+        SetFinal(_searchService.FindFinalRecord(_selectedTemplateId, values[0], values[1], values[2], values[3]));
+    }
+
+    private void SetFinal(LegoRecord? record)
+    {
+        _finalRecord = record;
+        openButton.Enabled = record is not null;
+        insertButton.Enabled = record is not null;
+        previewFileLabel.Text = record is null ? "-" : Path.GetFileName(record.AssetPath);
+        previewPathLabel.Text = record?.AssetPath ?? "-";
+    }
+
+    private void SetOptions(int index, IReadOnlyList<LegoSpecificationOption> options, string label)
+    {
+        if (options.Count == 0) return;
+        specLabels[index].Text = label;
+        specLabels[index].Enabled = true;
+        specCombos[index].Enabled = true;
+        specCombos[index].DisplayMember = nameof(LegoSpecificationOption.DisplayName);
+        specCombos[index].Items.AddRange(options.Cast<object>().ToArray());
+    }
+
+    private string?[] SelectedValues() => specCombos.Select(combo => (combo.SelectedItem as LegoSpecificationOption)?.Value).ToArray();
+
+    private void ResetSpecifications()
+    {
+        _selectedTemplateId = null;
+        _selectedSpecLabels = [];
+        _updatingSpecs = true;
+        ResetSpecificationControls();
+        _updatingSpecs = false;
+        SetFinal(null);
+    }
+
+    private void ResetSpecificationControls() { for (var index = 0; index < 4; index++) ClearSpec(index); }
+    private string SpecLabel(int index) => index < _selectedSpecLabels.Count ? _selectedSpecLabels[index] : $"규격{index + 1}";
+    private void ClearSpec(int index) { specCombos[index].Items.Clear(); specCombos[index].Enabled = false; specLabels[index].Text = $"규격{index + 1}"; specLabels[index].Enabled = false; }
+
+    private void OpenSelected()
+    {
+        if (_finalRecord is null) return;
+        MessageBox.Show(this, $"열기 요청: {_finalRecord.AssetPath}\r\n실제 도면 열기는 후속 Adapter에서 연결됩니다.", "Project LEGO", MessageBoxButtons.OK, MessageBoxIcon.Information);
     }
 
     private void RaiseInsertRequest()
     {
-        var request = LegoInsertRequestFactory.Create(_selected?.Record);
+        var request = LegoInsertRequestFactory.Create(_finalRecord);
         if (request is null) return;
         LegoInsertRequested?.Invoke(this, new(request));
-        MessageBox.Show(this, "삽입 요청이 생성되었습니다.\r\n실제 ZWCAD 삽입 기능은 후속 단계에서 연결됩니다.", "Project LEGO", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        MessageBox.Show(this, "삽입 요청이 생성되었습니다.\r\n실제 ZWCAD 삽입은 포함되지 않습니다.", "Project LEGO", MessageBoxButtons.OK, MessageBoxIcon.Information);
     }
-
-    private void OpenAssetFolder()
-    {
-        if (_selected is null) return;
-        try
-        {
-            var asset = Path.GetFullPath(Path.Combine(_repositoryRoot, _selected.Record.AssetPath));
-            var folder = File.Exists(asset) ? Path.GetDirectoryName(asset) : Directory.Exists(asset) ? asset : null;
-            if (folder is null) throw new DirectoryNotFoundException("샘플 AssetPath가 존재하지 않습니다.");
-            Process.Start(new ProcessStartInfo("explorer.exe", folder) { UseShellExecute = true });
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or System.ComponentModel.Win32Exception)
-        {
-            MessageBox.Show(this, exception.Message, "폴더를 열 수 없습니다", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-        }
-    }
-
-    private sealed record TemplateChoice(LegoTemplate? Template, string Name);
 }

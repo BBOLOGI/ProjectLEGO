@@ -13,3 +13,5 @@
 - JSON 기반 LEGO Record 저장소와 검증·검색 엔진
 - Template 기반 동적 필터를 제공하는 WinForms 검색 UI
 - 샘플 LEGO Record 8개와 삽입 요청 이벤트
+- 통합 LIKE 검색과 계층 규격 선택을 제공하는 Search UI v2.0
+- 저장 형식과 분리된 `IHierarchicalLegoSearchService → ILegoRepository` 구조

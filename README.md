@@ -56,15 +56,19 @@ var template = manager.GetTemplate("catch-basin");
 지원 형식은 `Single`, `Standard`, `Conditional`이며, 필드 형식은 `Number`,
 `Text`, `Boolean`, `Select`입니다.
 
-## LEGO 검색 Desktop
+## LEGO 검색 Desktop UI v2.0
 
 ```powershell
 dotnet run --project src/ProjectLEGO.Desktop/ProjectLEGO.Desktop.csproj --configuration Release
 ```
 
-앱은 `data/templates`와 `data/legos`를 로드하여 키워드·Template·Category·동적
-상세 필터 검색을 제공합니다. 결과를 선택하면 폴더 열기와 삽입 요청을 사용할 수
-있습니다. 삽입 요청은 이벤트만 발생시키며 실제 CAD 삽입은 포함하지 않습니다.
+앱은 Repository와 SearchService 계층을 통해 `data/templates`와 `data/legos`의
+LEGO를 통합 검색합니다. 이름·설명·태그·규격에 대한 부분 검색을 지원하고,
+공백과 `×/x/X` 표기를 정규화합니다.
+
+결과를 선택하면 Template의 검색 가능 필드가 규격1~4 계층으로 표시됩니다.
+상위 규격을 변경하면 하위 선택이 초기화되며, 최종 LEGO가 유일하게 결정되어야
+Preview와 열기·삽입 Mock 버튼이 활성화됩니다. 실제 CAD 삽입은 포함하지 않습니다.
 
 ## 문서 관리
 
