@@ -16,11 +16,23 @@ public sealed class HierarchicalLegoSearchTests
         Assert.Equal(HierarchicalLegoSearchService.Normalize(left), HierarchicalLegoSearchService.Normalize(right));
     }
 
-    [Fact] public void Search_EmptyReturnsAllRecords() => Assert.Equal(8, Service().Search(string.Empty).Count);
-    [Fact] public void Search_NameUsesLikeMatching() => Assert.Equal(3, Service().Search("집수").Count);
-    [Fact] public void Search_NumberFindsSpecifications() => Assert.Contains(Service().Search("1200"), result => result.Record.LegoId == "CB-1200");
-    [Fact] public void Search_FormatIgnoresMultiplicationStyle() => Assert.Contains(Service().Search("1000 x 1000"), result => result.Record.LegoId == "CB-1000");
-    [Fact] public void Search_DescriptionAndTagsAreIncluded() => Assert.Single(Service().Search("프리캐스트"));
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Search_EmptyReturnsNoResults(string? keyword) => Assert.Empty(Service().Search(keyword));
+
+    [Fact]
+    public void Search_NameGroupsMatchingRecordsByLegoType()
+    {
+        var result = Assert.Single(Service().Search("집수"));
+        Assert.Equal("집수정", result.Template.Name);
+        Assert.Equal(3, result.MatchingRecordCount);
+    }
+
+    [Fact] public void Search_NumberFindsMatchingLegoType() => Assert.Contains(Service().Search("1200"), result => result.Template.TemplateId == "catch-basin");
+    [Fact] public void Search_FormatIgnoresMultiplicationStyle() => Assert.Equal("catch-basin", Assert.Single(Service().Search("1000 x 1000")).Template.TemplateId);
+    [Fact] public void Search_DescriptionAndTagsAreIncluded() => Assert.Equal("catch-basin", Assert.Single(Service().Search("프리캐스트")).Template.TemplateId);
 
     [Fact]
     public void Spec1_ReturnsDistinctOrderedOptions()
@@ -64,7 +76,8 @@ public sealed class HierarchicalLegoSearchTests
     {
         ILegoRepository repository = new StubRepository(SampleRecords());
         var service = new HierarchicalLegoSearchService(repository, Templates());
-        Assert.Equal(8, service.Search(null).Count);
+        Assert.Empty(service.Search(null));
+        Assert.Single(service.Search("옹벽"));
     }
 
     private static HierarchicalLegoSearchService Service()

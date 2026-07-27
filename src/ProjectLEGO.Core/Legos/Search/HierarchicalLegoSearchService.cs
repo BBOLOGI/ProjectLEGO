@@ -19,12 +19,13 @@ public sealed class HierarchicalLegoSearchService : IHierarchicalLegoSearchServi
     public IReadOnlyList<HierarchicalSearchResult> Search(string? keyword)
     {
         var normalized = Normalize(keyword);
+        if (normalized.Length == 0) return [];
+
         return _records
-            .Where(record => normalized.Length == 0 || SearchValues(record, _templates[record.TemplateId]).Any(value => Normalize(value).Contains(normalized, StringComparison.Ordinal)))
-            .Select(record => new HierarchicalSearchResult(record, _templates[record.TemplateId], GetFields(_templates[record.TemplateId]).Select(field => DisplayProperty(record, field)).ToArray()))
+            .Where(record => SearchValues(record, _templates[record.TemplateId]).Any(value => Normalize(value).Contains(normalized, StringComparison.Ordinal)))
+            .GroupBy(record => record.TemplateId, StringComparer.OrdinalIgnoreCase)
+            .Select(group => new HierarchicalSearchResult(_templates[group.Key], group.Count()))
             .OrderBy(result => result.Template.Name, StringComparer.CurrentCultureIgnoreCase)
-            .ThenBy(result => result.Record.Name, StringComparer.CurrentCultureIgnoreCase)
-            .ThenBy(result => result.Record.LegoId, StringComparer.OrdinalIgnoreCase)
             .ToArray();
     }
 

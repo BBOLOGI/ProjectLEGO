@@ -3,9 +3,8 @@ using ProjectLEGO.Core.Templates;
 namespace ProjectLEGO.Core.Legos.Search;
 
 public sealed record HierarchicalSearchResult(
-    LegoRecord Record,
     LegoTemplate Template,
-    IReadOnlyList<string> Specifications);
+    int MatchingRecordCount);
 
 public sealed record LegoSpecificationOption(string Value, string DisplayName)
 {

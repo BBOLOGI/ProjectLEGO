@@ -42,7 +42,7 @@ public partial class MainForm : Form
         var recordResult = repository.LoadAll();
         _searchService = new HierarchicalLegoSearchService(repository, templateResult.Templates);
         statusLabel.Text = $"Template 오류 {templateResult.Errors.Count}건 · LEGO 오류 {recordResult.Errors.Count}건";
-        RunSearch();
+        ShowEmptySearchResults();
     }
 
     private void RunSearch()
@@ -53,12 +53,12 @@ public partial class MainForm : Form
         resultList.Items.Clear();
         foreach (var result in results)
         {
-            var item = new ListViewItem(result.Record.Name) { Tag = result };
-            for (var index = 0; index < 4; index++) item.SubItems.Add(index < result.Specifications.Count ? result.Specifications[index] : string.Empty);
+            var item = new ListViewItem(result.Template.Name) { Tag = result };
+            item.SubItems.Add(result.MatchingRecordCount.ToString());
             resultList.Items.Add(item);
         }
         resultList.EndUpdate();
-        resultCountLabel.Text = results.Count == 0 ? "검색 결과가 없습니다." : $"검색 결과 {results.Count}개";
+        resultCountLabel.Text = results.Count == 0 ? "검색 결과 0개" : $"검색 결과 {results.Count}개";
         ResetSpecifications();
     }
 
@@ -124,6 +124,13 @@ public partial class MainForm : Form
         ResetSpecificationControls();
         _updatingSpecs = false;
         SetFinal(null);
+    }
+
+    private void ShowEmptySearchResults()
+    {
+        resultList.Items.Clear();
+        resultCountLabel.Text = "검색 결과 0개";
+        ResetSpecifications();
     }
 
     private void ResetSpecificationControls() { for (var index = 0; index < 4; index++) ClearSpec(index); }

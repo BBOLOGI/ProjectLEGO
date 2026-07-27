@@ -45,7 +45,8 @@ partial class MainForm
         resultPanel.RowStyles.Add(new(SizeType.Absolute, 32)); resultPanel.RowStyles.Add(new(SizeType.Percent, 100));
         resultCountLabel = new() { Text = "검색 결과 0개", Dock = DockStyle.Fill, Font = new Font(Font, FontStyle.Bold), TextAlign = ContentAlignment.MiddleLeft };
         resultList = new() { Dock = DockStyle.Fill, View = View.Details, FullRowSelect = true, MultiSelect = false, HideSelection = false };
-        resultList.Columns.Add("LEGO 이름", 170); resultList.Columns.Add("규격1", 95); resultList.Columns.Add("규격2", 95); resultList.Columns.Add("규격3", 95); resultList.Columns.Add("규격4", 95);
+        resultList.Columns.Add("LEGO 이름", 360);
+        resultList.Columns.Add("일치 레코드", 120);
         resultPanel.Controls.Add(resultCountLabel, 0, 0); resultPanel.Controls.Add(resultList, 0, 1);
         split.Panel1.Controls.Add(resultPanel);
 
